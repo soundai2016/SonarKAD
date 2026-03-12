@@ -1,0 +1,323 @@
+outputs_root: outputs
+paper:
+  out_dir: outputs/results
+  events:
+  - swellex96_s5_vla
+  - swellex96_s59_vla
+  labels:
+    event_a: S5 (VLA)
+    event_b: S59 (VLA)
+  tags:
+    event_a: S5
+    event_b: S59
+  figures:
+    method_overview: figure_method_overview.png
+    data_overview: figure_swellex96_data_overview.png
+    decomposition: figure_swellex96_decomposition.png
+    summary: figure_swellex96_summary.png
+  tables:
+    metrics_csv: table_metrics_two_events.csv
+    diagnostics_csv: table_diagnostics_two_events.csv
+  model_selection:
+    enabled: true
+    selection_rule: 1se
+    default_ranks:
+    - 0
+    - 1
+    - 2
+    - 4
+    - 8
+    - 16
+    events:
+      swellex96_s5_vla:
+        ranks:
+        - 0
+        - 1
+        - 2
+        - 4
+        - 8
+        - 16
+        selection_rule: 1se
+      swellex96_s59_vla:
+        ranks:
+        - 0
+        - 1
+        - 2
+        - 4
+        - 8
+        - 16
+        selection_rule: 1se
+method_overview:
+  spline_demo:
+    n_basis: 12
+    degree: 3
+    xmin: 0.0
+    xmax: 1.0
+experiments:
+  swellex96_s5_vla:
+    type: swellex96
+    dataset:
+      data_root: data
+      event: S5
+      array: VLA
+      sio_path: data/J1312315.vla.21els.sio
+      range_table_path: data/RangeEventS5
+      range_file_hint: SproulToVLA.S5
+      positions_vla_path: data/positions_vla.txt
+      reverse_positions_for_sio: true
+      expected_nc: 21
+      channels:
+      - 1
+      - 2
+      - 3
+      - 4
+      - 5
+      - 6
+      - 7
+      - 8
+      - 9
+      - 10
+      - 11
+      - 12
+      - 13
+      - 14
+      - 15
+      - 16
+      - 17
+      - 18
+      - 19
+      - 20
+      - 21
+      channels_are_one_indexed: true
+      tone_set: high
+      frequency_mode: tones
+      range_time_offset_sec: auto
+      frame_filter:
+        db_floor: -200.0
+        min_valid_frac: 0.8
+        force: false
+      processed_npz: outputs/swellex96_s5_vla/processed/swellex96_tonal_rl_high.npz
+    preprocess:
+      fs_hz: 1500.0
+      win_sec: 2.7306666667
+      hop_sec: 1.3653333333
+      n_fft: 4096
+      window: hann
+      detrend: true
+      channel_pool: median
+      subtract_noise: true
+      noise_freqs_hz: null
+      noise_stat: median
+    environment:
+      ctd_dir: data/ctds
+      water_depth_m: 217.0
+      ctd_statistic: median
+      profile_dz_m: 1.0
+      ctd_stations:
+      - 6
+    model:
+      interaction_rank: 16
+      gauge_fix_grid_n: 256
+      gauge_fix_interaction: true
+      spline:
+        n_basis: 64
+        degree: 3
+        xmin: 0.0
+        xmax: 1.0
+      absorption:
+        enabled: false
+        mode: thorp_scale
+        reference_fc: true
+        init_log_scale: 0.0
+    training:
+      seed: 123
+      lr: 0.003
+      weight_decay: 0.0001
+      epochs: 2200
+      stage1_epochs: 500
+      stage2_epochs: 1700
+      gauge_fix_every: 25
+      batch_size: 4096
+      hidden_mlp: 64
+      device: auto
+      amp: true
+      progress_bar: true
+      compile: false
+      matmul_precision: high
+      num_workers: 0
+      pin_memory: true
+      early_stopping:
+        enabled: true
+        val_frac_frames: 0.1
+        patience: 120
+        min_delta: 0.0001
+        eval_every: 10
+      wgi_reg:
+        enabled: true
+        weight: 0.02
+        beta_mode: from_baseline
+        beta_fixed: 0.6
+        step_logr: 0.02
+        warmup_epochs: 150
+      loss: huber
+      huber_delta: 1.0
+      range_monotonic_reg:
+        enabled: true
+        weight: 0.01
+        grid_n: 64
+      grad_clip_norm: 1.0
+      lambda_interaction_l2: 0.0001
+      lambda_spline_roughness: 0.0001
+      spline_roughness_order: 2
+    split:
+      mode: random
+      train_frac: 0.8
+      test_frac: 0.2
+    block_cv:
+      mode: kfold
+      n_folds: 5
+      block_len_frames: 30
+      seed: 123
+    outputs:
+      processed_dir: outputs/swellex96_s5_vla/processed
+      run_dir: outputs/swellex96_s5_vla/run
+  swellex96_s59_vla:
+    type: swellex96
+    dataset:
+      data_root: data
+      event: S59
+      array: VLA
+      sio_path: data/J1341145.vla.21els.sio
+      range_table_path: data/RangeEventS59
+      range_file_hint: SproulToVLA.S59
+      positions_vla_path: data/positions_vla.txt
+      reverse_positions_for_sio: true
+      expected_nc: 21
+      channels:
+      - 1
+      - 2
+      - 3
+      - 4
+      - 5
+      - 6
+      - 7
+      - 8
+      - 9
+      - 10
+      - 11
+      - 12
+      - 13
+      - 14
+      - 15
+      - 16
+      - 17
+      - 18
+      - 19
+      - 20
+      - 21
+      channels_are_one_indexed: true
+      tone_set: high
+      frequency_mode: tones
+      range_time_offset_sec: auto
+      frame_filter:
+        db_floor: -200.0
+        min_valid_frac: 0.8
+        force: false
+      processed_npz: outputs/swellex96_s59_vla/processed/swellex96_tonal_rl_high.npz
+    preprocess:
+      fs_hz: 1500.0
+      win_sec: 2.7306666667
+      hop_sec: 1.3653333333
+      n_fft: 4096
+      window: hann
+      detrend: true
+      channel_pool: median
+      subtract_noise: true
+      noise_freqs_hz: null
+      noise_stat: median
+    environment:
+      ctd_dir: data/ctds
+      water_depth_m: 217.0
+      ctd_statistic: median
+      profile_dz_m: 1.0
+      ctd_stations:
+      - 20
+    model:
+      interaction_rank: 16
+      gauge_fix_grid_n: 256
+      gauge_fix_interaction: true
+      spline:
+        n_basis: 64
+        degree: 3
+        xmin: 0.0
+        xmax: 1.0
+    training:
+      seed: 456
+      lr: 0.003
+      weight_decay: 0.0001
+      epochs: 2200
+      stage1_epochs: 500
+      stage2_epochs: 1700
+      gauge_fix_every: 25
+      batch_size: 4096
+      hidden_mlp: 64
+      device: auto
+      amp: true
+      progress_bar: true
+      compile: false
+      matmul_precision: high
+      num_workers: 0
+      pin_memory: true
+      early_stopping:
+        enabled: true
+        val_frac_frames: 0.1
+        patience: 120
+        min_delta: 0.0001
+        eval_every: 10
+      wgi_reg:
+        enabled: true
+        weight: 0.02
+        beta_mode: from_baseline
+        beta_fixed: 0.6
+        step_logr: 0.02
+        warmup_epochs: 150
+      loss: huber
+      huber_delta: 1.0
+      range_monotonic_reg:
+        enabled: true
+        weight: 0.01
+        grid_n: 64
+      grad_clip_norm: 1.0
+      lambda_interaction_l2: 0.0001
+      lambda_spline_roughness: 0.0001
+      spline_roughness_order: 2
+    split:
+      mode: random
+      train_frac: 0.8
+      test_frac: 0.2
+    block_cv:
+      mode: kfold
+      n_folds: 5
+      block_len_frames: 30
+      seed: 456
+    outputs:
+      processed_dir: outputs/swellex96_s59_vla/processed
+      run_dir: outputs/swellex96_s59_vla/run
+paper_extras:
+  rank_ablation:
+    events:
+    - swellex96_s5_vla
+    - swellex96_s59_vla
+    ranks:
+    - 0
+    - 1
+    - 2
+    - 4
+    - 8
+    - 16
+    selection_rule: 1se
+  transfer:
+    source: swellex96_s5_vla
+    target: swellex96_s59_vla
+    freeze_parts:
+    - phi_f

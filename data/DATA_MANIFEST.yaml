@@ -1,0 +1,40 @@
+# SWellEx-96 data manifest for this repo.
+#
+# This file is intentionally small and can be committed. It documents the raw
+# files you need to download from https://swellex96.ucsd.edu/.
+
+arrays:
+  VLA:
+    sampling_rate_hz: 1500
+    processed_elements: 21
+    notes:
+      - "For Events S5 and S59, VLA/TLA channel order in the .sio files is reversed relative to positions_vla.txt."
+
+positions:
+  vla:
+    file: positions_vla.txt
+    elements: 21
+
+events:
+  S5:
+    start_gmt: "J131 23:15"
+    end_gmt: "J132 00:30"
+    vla_sio:
+      file: J1312315.vla.21els.sio
+      source_archive: J1312315.vla.21els.sio.gz
+      description: "21-element subarray of the VLA"
+    range_dir: RangeEventS5
+    range_hint: "SproulToVLA.S5"
+    ctd_station_recommended: [6]
+    ctd_station_alternative: [5]
+
+  S59:
+    start_gmt: "J134 11:45"
+    end_gmt: "J134 12:50"
+    vla_sio:
+      file: J1341145.vla.21els.sio
+      source_archive: J1341145.vla.21els.sio.gz
+      description: "21-element subarray of the VLA"
+    range_dir: RangeEventS59
+    range_hint: "SproulToVLA.S59"
+    ctd_station_recommended: [20]

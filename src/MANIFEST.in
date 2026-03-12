@@ -1,0 +1,4 @@
+include version.txt
+recursive-include sonarkad_*
+global-exclude *.pyc
+global-exclude .DS_Store

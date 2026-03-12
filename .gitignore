@@ -1,0 +1,9 @@
+data/ctds/
+data/gps/
+data/RangeEventS5/
+data/RangeEventS59/
+outputs
+
+data/J1312315.vla.21els.sio
+data/J1341145.vla.21els.sio
+data/positions_vla.txt

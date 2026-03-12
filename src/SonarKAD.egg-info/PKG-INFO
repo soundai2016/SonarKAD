@@ -1,0 +1,27 @@
+Metadata-Version: 2.4
+Name: SonarKAD
+Version: 1.0.1
+Summary: Sonar Kolmogorov-Arnold Decomposition Based on GPU or CPU.
+Home-page: https://soundai.com
+Author: Chen Xiaoliang
+Author-email: chenxiaoliang@soundai.com
+License: Apache License
+Keywords: SonarKAD,Sonar Kolmogorov-Arnold Decomposition,sonar,kan
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: Intended Audience :: Science/Research
+Classifier: Operating System :: POSIX :: Linux
+Classifier: License :: OSI Approved :: Apache Software License
+Classifier: Topic :: Software Development :: Libraries :: Python Modules
+Requires-Dist: numpy
+Requires-Dist: PyYAML
+Requires-Dist: torch
+Dynamic: author
+Dynamic: author-email
+Dynamic: classifier
+Dynamic: home-page
+Dynamic: keywords
+Dynamic: license
+Dynamic: requires-dist
+Dynamic: summary
