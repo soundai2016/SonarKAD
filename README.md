@@ -1,5 +1,21 @@
 # SonarKAD: physics-aligned kolmogorov–arnold decomposition
 
+## Installation
+
+You can install SonarKAD directly via pip:
+
+```bash
+pip install SonarKAD
+```
+## Dataset Download
+
+The SWellEx-96 dataset used in this repository is publicly available and hosted by the Marine Physical Laboratory (MPL) at UC San Diego. You can download the required acoustic and environmental data from the links below:
+
+* **Official SWellEx-96 Website:** [http://swellex96.ucsd.edu/](http://swellex96.ucsd.edu/)
+* **UCSD Library Digital Collections:** [SWellEx-96 Experiment Acoustic Data](https://library.ucsd.edu/dc/collection/bb3312136z)
+
+**Note on required files:** To run the standard workflow, please download the acoustic data for **Event S5** and **Event S59** (specifically the `.sio` VLA files and `positions_vla.txt`), along with the `ctds` environmental data. Place all downloaded files directly into the `data/` directory as specified in the layout below.
+
 ## Data layout
 
 See `data/README_DATA.md`.
