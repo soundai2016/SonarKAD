@@ -117,10 +117,10 @@ def _load_image(path: Path) -> Image.Image:
 def _crop_rel(img: Image.Image, x0: float, y0: float, x1: float, y1: float) -> np.ndarray:
     w, h = img.size
     box = (
-        int(round(x0 * w)),
-        int(round(y0 * h)),
-        int(round(x1 * w)),
-        int(round(y1 * h)),
+        int(max(0, round(x0 * w))),
+        int(max(0, round(y0 * h))),
+        int(min(w, round(x1 * w))),
+        int(min(h, round(y1 * h))),
     )
     return np.asarray(img.crop(box))
 
@@ -140,7 +140,6 @@ def _clean_axes(ax, *, grid: bool = True) -> None:
 
 
 def _add_subcaption(ax, label: str, text: str, *, y: float = -0.15, fontsize: float = SUBCAPTION_SIZE) -> None:
-    # Changed x to 0.5 and ha to 'center' for requirement 1 (bottom centered horizontal align)
     ax.text(
         0.5,
         y,
@@ -159,7 +158,6 @@ def _clean_output_dir(out_dir: Path) -> None:
 
 
 def _short_method_name(name: str) -> str:
-    # Removed newline (\n) abbreviations because we will use slanted text
     mapping = {
         "Parametric TL": "Parametric TL",
         "Additive-only": "Additive only",
@@ -174,7 +172,7 @@ def _short_method_name(name: str) -> str:
 
 
 # -----------------------------------------------------------------------------
-# B-spline helpers for the method overview panel
+# B-spline helpers
 # -----------------------------------------------------------------------------
 
 
@@ -228,7 +226,7 @@ def bspline_basis_matrix_np(x: np.ndarray, knots: np.ndarray, degree: int) -> np
 
 
 # -----------------------------------------------------------------------------
-# Figure 1: method overview (redraw schematic with standardized subcaptions)
+# Figure 1: method overview 
 # -----------------------------------------------------------------------------
 
 
@@ -292,7 +290,6 @@ def _draw_topological_contrast(ax) -> None:
         ax.text(pos[0] - 0.055, pos[1], labels[i], ha="right", va="center", fontsize=14)
 
     ax.add_patch(patches.Circle(s_sum, 0.048, facecolor="white", edgecolor="black", lw=2.8, zorder=2))
-    # Requirement 2: Reduced fontsize from 16 to AXIS_LABEL_SIZE+1 = 15
     ax.text(s_sum[0], s_sum[1], r"$\Sigma$", ha="center", va="center", fontsize=15)
     ax.text(
         0.77,
@@ -365,7 +362,6 @@ def _draw_macro_alignment(ax) -> None:
     ax.axis("off")
 
     bbox_props = dict(boxstyle="round,pad=0.42", fc="#FAFAFA", ec="black", lw=1.8)
-    # Requirement 2: Reduced fontsize to AXIS_LABEL_SIZE+1 = 15
     ax.text(
         0.5,
         0.83,
@@ -405,7 +401,6 @@ def _draw_macro_alignment(ax) -> None:
             lw=2.8,
         )
         ax.add_patch(rect)
-        # Requirement 2: Reduced fontsize to AXIS_LABEL_SIZE+1 = 15
         ax.text(x_pos, box_y + 0.15, term, ha="center", va="center", fontsize=15, color=col, fontweight="bold")
         ax.text(x_pos, box_y + 0.05, desc, ha="center", va="center", fontsize=12, color="#333333")
         ax.annotate(
@@ -434,103 +429,80 @@ def render_method_overview(out_dir: Path) -> Path:
     _add_subcaption(ax3, "(c)", "Alignment between additive components and the passive sonar equation", y=-0.10)
 
     out_path = out_dir / "figure_method_overview.png"
-    fig.subplots_adjust(left=0.04, right=0.99, top=0.985, bottom=0.05)
+    fig.subplots_adjust(left=0.05, right=0.98, top=0.98, bottom=0.08)
     fig.savefig(out_path, dpi=300, bbox_inches="tight", facecolor="white")
     plt.close(fig)
     return out_path
 
 
 # -----------------------------------------------------------------------------
-# Figure 2: SWellEx-96 data overview (crop and re-layout existing result)
+# Figure 2 & 3 Combined: SWellEx-96 Data Overview & Decomposition
 # -----------------------------------------------------------------------------
 
 
-def render_data_overview(results_dir: Path, out_dir: Path) -> Path:
-    src = results_dir / "figure_swellex96_data_overview.png"
-    img = _load_image(src)
+def render_combined_data_and_decomposition(results_dir: Path, out_dir: Path) -> Path:
+    # 1. Load Data Overview Image
+    src_data = results_dir / "figure_swellex96_data_overview.png"
+    img_data = _load_image(src_data)
 
-    # Requirement 2: Increase y0 to 0.140 and y1 adjustments to remove the top title, 
-    # adjust x0 slightly left to ensure Y axis label isn't truncated
-    panels = [
-        _crop_rel(img, 0.010, 0.140, 0.560, 0.495),  # S5 tonal RL
-        _crop_rel(img, 0.585, 0.140, 0.985, 0.495),  # S5 range
-        _crop_rel(img, 0.010, 0.605, 0.560, 0.985),  # S59 tonal RL
-        _crop_rel(img, 0.585, 0.605, 0.985, 0.985),  # S59 range
+    data_panels = [
+        _crop_rel(img_data, 0.000, 0.080, 0.500, 0.500),  # S5 tonal RL
+        _crop_rel(img_data, 0.500, 0.080, 1.000, 0.500),  # S5 range
+        _crop_rel(img_data, 0.000, 0.520, 0.500, 1.000),  # S59 tonal RL
+        _crop_rel(img_data, 0.500, 0.520, 1.000, 1.000),  # S59 range
     ]
-    captions = [
+    data_captions = [
         "Event S5 tonal received-level field",
         "Event S5 source–receiver range evolution",
         "Event S59 tonal received-level field",
         "Event S59 source–receiver range evolution",
     ]
 
-    set_plot_style()
-    fig = plt.figure(figsize=(13.6, 7.6), facecolor="white")
-    gs = fig.add_gridspec(2, 2, width_ratios=[1.42, 1.0], hspace=0.38, wspace=0.18)
-    axes = [
-        fig.add_subplot(gs[0, 0]),
-        fig.add_subplot(gs[0, 1]),
-        fig.add_subplot(gs[1, 0]),
-        fig.add_subplot(gs[1, 1]),
+    # 2. Load Decomposition Image
+    src_decomp = results_dir / "figure_swellex96_decomposition.png"
+    img_decomp = _load_image(src_decomp)
+
+    # Note: 第一行（频域和 S5）的 y0 改为 0.080
+    decomp_panels = [
+        _crop_rel(img_decomp, 0.000, 0.080, 0.500, 0.500),  # frequency component
+        _crop_rel(img_decomp, 0.500, 0.080, 1.000, 0.500),  # S5 psi map + colorbar
+        _crop_rel(img_decomp, 0.000, 0.520, 0.500, 1.000),  # range component
+        _crop_rel(img_decomp, 0.500, 0.520, 1.000, 1.000),  # S59 psi map + colorbar
     ]
-
-    for ax, panel, label, caption in zip(axes, panels, ["(a)", "(b)", "(c)", "(d)"], captions):
-        _show_image(ax, panel)
-        _add_subcaption(ax, label, caption, y=-0.12)
-
-    out_path = out_dir / "figure_swellex96_data_overview.png"
-    fig.subplots_adjust(left=0.03, right=0.99, top=0.99, bottom=0.05)
-    fig.savefig(out_path, dpi=300, bbox_inches="tight", facecolor="white")
-    plt.close(fig)
-    return out_path
-
-
-# -----------------------------------------------------------------------------
-# Figure 3: interpretable decomposition (crop and re-layout existing result)
-# -----------------------------------------------------------------------------
-
-
-def render_decomposition(results_dir: Path, out_dir: Path) -> Path:
-    src = results_dir / "figure_swellex96_decomposition.png"
-    img = _load_image(src)
-
-    # Requirement 2: Increase y0 to 0.140 to cut original top titles
-    panels = [
-        _crop_rel(img, 0.005, 0.140, 0.505, 0.515),  # frequency component
-        _crop_rel(img, 0.510, 0.140, 0.985, 0.515),  # S5 psi map + colorbar
-        _crop_rel(img, 0.005, 0.600, 0.505, 0.995),  # range component
-        _crop_rel(img, 0.510, 0.600, 0.985, 0.995),  # S59 psi map + colorbar
-    ]
-    captions = [
+    decomp_captions = [
         "Frequency-only additive component across events",
         "Event S5 residual interaction map and striation geometry",
         "Range-only additive component across events",
         "Event S59 residual interaction map and striation geometry",
     ]
 
+    panels = data_panels + decomp_panels
+    captions = data_captions + decomp_captions
+    labels = ["(a)", "(b)", "(c)", "(d)", "(e)", "(f)", "(g)", "(h)"]
+
     set_plot_style()
-    fig = plt.figure(figsize=(13.6, 7.7), facecolor="white")
-    gs = fig.add_gridspec(2, 2, width_ratios=[1.02, 1.0], hspace=0.40, wspace=0.18)
+    fig = plt.figure(figsize=(14.0, 17.5), facecolor="white")
+    gs = fig.add_gridspec(4, 2, width_ratios=[1.0, 1.0], hspace=0.15, wspace=0.05)
     axes = [
-        fig.add_subplot(gs[0, 0]),
-        fig.add_subplot(gs[0, 1]),
-        fig.add_subplot(gs[1, 0]),
-        fig.add_subplot(gs[1, 1]),
+        fig.add_subplot(gs[0, 0]), fig.add_subplot(gs[0, 1]),
+        fig.add_subplot(gs[1, 0]), fig.add_subplot(gs[1, 1]),
+        fig.add_subplot(gs[2, 0]), fig.add_subplot(gs[2, 1]),
+        fig.add_subplot(gs[3, 0]), fig.add_subplot(gs[3, 1]),
     ]
 
-    for ax, panel, label, caption in zip(axes, panels, ["(a)", "(b)", "(c)", "(d)"], captions):
+    for ax, panel, label, caption in zip(axes, panels, labels, captions):
         _show_image(ax, panel)
-        _add_subcaption(ax, label, caption, y=-0.12)
+        _add_subcaption(ax, label, caption, y=-0.10)
 
-    out_path = out_dir / "figure_swellex96_decomposition.png"
-    fig.subplots_adjust(left=0.03, right=0.99, top=0.99, bottom=0.05)
+    out_path = out_dir / "figure_swellex96_combined_data_and_decomposition.png"
+    fig.subplots_adjust(left=0.05, right=0.98, top=0.98, bottom=0.06)
     fig.savefig(out_path, dpi=300, bbox_inches="tight", facecolor="white")
     plt.close(fig)
     return out_path
 
 
 # -----------------------------------------------------------------------------
-# Figure 4: two-event metrics, diagnostics, and rank ablation (redraw from CSV)
+# Figure 4: two-event metrics, diagnostics, and rank ablation 
 # -----------------------------------------------------------------------------
 
 
@@ -540,7 +512,6 @@ def _bar_positions(n: int) -> np.ndarray:
 
 def _set_method_xticks(ax, methods: list[str]) -> None:
     ax.set_xticks(_bar_positions(len(methods)))
-    # Requirement 3: Slanted text (rotation=30) to resolve overlap
     ax.set_xticklabels(methods, rotation=30, ha="right", fontsize=10.5)
 
 
@@ -680,7 +651,6 @@ def render_two_event_metrics_and_rank_ablation(results_dir: Path, out_dir: Path)
     ax2.grid(False)
     if selected_rank is not None:
         ax.axvline(float(selected_rank), linestyle="--", linewidth=1.3, color="0.25")
-        # Requirement 3: Moved K=0 text to bottom left to avoid intersecting with the line at K=0
         ax.text(
             0.05,
             0.05,
@@ -714,15 +684,14 @@ def render_two_event_metrics_and_rank_ablation(results_dir: Path, out_dir: Path)
     _add_subcaption(ax, "(f)", "Rank-ablation trend for interaction-energy fraction", y=-0.38)
 
     out_path = out_dir / "figure_swellex96_two_event_metrics_diagnostics_and_rank_ablation.png"
-    # Adjusted hspace and bottom margin to accommodate tilted x-labels
-    fig.subplots_adjust(left=0.06, right=0.98, top=0.98, bottom=0.18, hspace=0.88, wspace=0.55)
+    fig.subplots_adjust(left=0.06, right=0.98, top=0.98, bottom=0.18, hspace=0.60, wspace=0.35)
     fig.savefig(out_path, dpi=300, bbox_inches="tight", facecolor="white")
     plt.close(fig)
     return out_path
 
 
 # -----------------------------------------------------------------------------
-# Figure 5: transfer study (curve crop + re-layout bar charts with clearer cues)
+# Figure 5: transfer study (1 row x 3 columns)
 # -----------------------------------------------------------------------------
 
 
@@ -749,8 +718,7 @@ def render_transfer_study(results_dir: Path, out_dir: Path) -> Path:
     transfer_dir = results_dir / "transfer_study"
     curve_img = _load_image(transfer_dir / "figure_transfer_phi_f.png")
     
-    # Requirement 2: Increase y0 to 0.140 to cut original top titles
-    curve_panel = _crop_rel(curve_img, 0.055, 0.140, 0.985, 0.985)
+    curve_panel = _crop_rel(curve_img, 0.000, 0.000, 1.000, 1.000)
 
     rows = _read_csv_rows(transfer_dir / "table_transfer.csv")
     if len(rows) < 2:
@@ -768,49 +736,46 @@ def render_transfer_study(results_dir: Path, out_dir: Path) -> Path:
     ev_rel = (ev[1] - ev[0]) / ev[0] * 100.0
 
     set_plot_style()
-    fig = plt.figure(figsize=(13.8, 8.0), facecolor="white")
-    # Requirement 4: Set height_ratios higher for row 0 to allow (a) to expand widely maintaining ratio, shrinking b and c.
-    gs = fig.add_gridspec(2, 2, height_ratios=[1.70, 1.0], hspace=0.60, wspace=0.34)
+    fig = plt.figure(figsize=(18.0, 5.2), facecolor="white")
+    gs = fig.add_gridspec(1, 3, width_ratios=[1.6, 1.0, 1.0], wspace=0.15)
 
-    # (a) basis transfer comparison, full first row
-    ax0 = fig.add_subplot(gs[0, :])
+    # (a) basis transfer comparison
+    ax0 = fig.add_subplot(gs[0, 0])
     _show_image(ax0, curve_panel)
-    _add_subcaption(ax0, "(a)", "Transferred source-event frequency basis versus target-event fits", y=-0.08)
+    _add_subcaption(ax0, "(a)", "Transferred source-event frequency basis\nversus target-event fits", y=-0.14)
 
     # (b) RMSE bar chart
-    ax1 = fig.add_subplot(gs[1, 0])
+    ax1 = fig.add_subplot(gs[0, 1])
     ax1.bar(x, rmse, color=colors, width=0.58)
     ax1.set_xticks(x)
     ax1.set_xticklabels(labels)
     ax1.set_ylabel("RMSE (dB)")
-    ax1.set_ylim(0.0, max(rmse) * 1.26)
+    ax1.set_ylim(0.0, max(rmse) * 1.28)
     _clean_axes(ax1)
     _better_badge(ax1, "↓ lower is better", color=PALETTE.sonarkad_rand)
     for xi, yi in zip(x, rmse):
         ax1.text(xi, yi + 0.02, f"{yi:.3f}", ha="center", va="bottom", fontsize=10.6)
     yb = max(rmse) * 1.05
     _comparison_bracket(ax1, x[0], x[1], yb, 0.10, f"Δ = {rmse_delta:+.3f} dB ({rmse_rel:+.1f}%)", color=PALETTE.sonarkad_rand)
-    # Requirement 4: transfer gain annotations removed
-    _add_subcaption(ax1, "(b)", "Target-event predictive error after freezing the transferred frequency basis", y=-0.22)
+    _add_subcaption(ax1, "(b)", "Target-event predictive error", y=-0.14)
 
     # (c) EV bar chart
-    ax2 = fig.add_subplot(gs[1, 1])
+    ax2 = fig.add_subplot(gs[0, 2])
     ax2.bar(x, ev, color=colors, width=0.58)
     ax2.set_xticks(x)
     ax2.set_xticklabels(labels)
     ax2.set_ylabel("Explained variance")
-    ax2.set_ylim(0.0, max(ev) * 1.32)
+    ax2.set_ylim(0.0, max(ev) * 1.35)
     _clean_axes(ax2)
     _better_badge(ax2, "↑ higher is better", color=PALETTE.sonarkad_rand)
     for xi, yi in zip(x, ev):
         ax2.text(xi, yi + 0.010, f"{yi:.3f}", ha="center", va="bottom", fontsize=10.6)
     yc = max(ev) * 1.08
     _comparison_bracket(ax2, x[0], x[1], yc, 0.03, f"Δ = {ev_delta:+.3f} ({ev_rel:+.1f}%)", color=PALETTE.sonarkad_rand)
-    # Requirement 4: transfer gain annotations removed
-    _add_subcaption(ax2, "(c)", "Target-event explained variance after freezing the transferred frequency basis", y=-0.22)
+    _add_subcaption(ax2, "(c)", "Target-event explained variance", y=-0.14)
 
     out_path = out_dir / "figure_transfer_learning_frequency_basis_and_target_event_comparison.png"
-    fig.subplots_adjust(left=0.05, right=0.99, top=0.985, bottom=0.08)
+    fig.subplots_adjust(left=0.06, right=0.98, top=0.92, bottom=0.20)
     fig.savefig(out_path, dpi=300, bbox_inches="tight", facecolor="white")
     plt.close(fig)
     return out_path
@@ -829,22 +794,16 @@ def build_outputs(results_dir: Path, out_dir: Path, *, clean: bool = True) -> Li
 
     outputs: List[Path] = []
     outputs.append(render_method_overview(out_dir))
-    outputs.append(render_data_overview(results_dir, out_dir))
-    outputs.append(render_decomposition(results_dir, out_dir))
+    
+    # Combined Figures 2 and 3 into one operation
+    outputs.append(render_combined_data_and_decomposition(results_dir, out_dir))
+    
     outputs.append(render_two_event_metrics_and_rank_ablation(results_dir, out_dir))
     outputs.append(render_transfer_study(results_dir, out_dir))
 
     outputs.append(_copy_table(results_dir / "table_metrics_two_events.csv", out_dir / "table_swellex96_two_event_metrics.csv"))
     outputs.append(_copy_table(results_dir / "table_diagnostics_two_events.csv", out_dir / "table_swellex96_two_event_diagnostics.csv"))
 
-    manifest = {
-        "results_dir": str(results_dir),
-        "out_dir": str(out_dir),
-        "assets": [str(p) for p in outputs],
-    }
-    manifest_path = out_dir / "manifest.json"
-    manifest_path.write_text(json.dumps(manifest, indent=2), encoding="utf-8")
-    outputs.append(manifest_path)
     return outputs
 
 
